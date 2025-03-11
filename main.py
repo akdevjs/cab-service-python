@@ -131,7 +131,7 @@ def login(role):
             clear_console()
             intro_screen()
             print("Login")
-            print(f"\n*** Invalid Password***\n")
+            print("\n*** Invalid Password***\n")
 
 
 def register(role):
