@@ -1,6 +1,6 @@
 from utils import clear_console, encrypt, decrypt
 from constants import userInfoPath,driverInfoPath
-from validations import isUserNameValid, isPhoneNumberValid, isValidEmail, isValidName, isPasswordValid, isValidCarName
+from validations import isCarModelValid, isCarNumberValid, isConfrimPasswordValid, isUserNameValid, isPhoneNumberValid, isValidEmail, isValidName, isPasswordValid, isValidCarName
 
 """
 1. Are you driver or Passenger:
@@ -63,12 +63,38 @@ authenticated_user = {
             
         } 
 
-def intro_screen():
+def intro_screen(intro_text=""):
     print("---------------------------------------------")
     print("|    Welcom the City to City cab service    |")
-    print("---------------------------------------------")
+    print("---------------------------------------------\n")
+    print(intro_text)
 
+def new_screen(fx):
+    def mfx(*args, **kwargs):
+        clear_console()
+        intro_screen()
+        result = fx(*args, **kwargs)
+        return result
+    return mfx
 
+@new_screen
+def getValue(key, validate, error, *args, **kwargs):
+    print("Register your Account")
+    if(error):
+        print(f"*** {error} ***")
+    value = input(f"Enter the {" ".join(key.split("_")).capitalize()}: ")
+    validation = validate(value, *args, **kwargs)
+    print(validation["Status"])
+    if(validation["Status"]):
+            return value
+    else:
+       error= validation["Message"] 
+       return getValue(key, validate, error, *args, **kwargs)
+
+def action_selector(initail_statement, *opts):
+    generated_opts = "\n".join([f"({index+1}) {item}" for index, item in enumerate(opts)])
+    content = f"{initail_statement}\n{generated_opts}\nNote: Enter \"1\"or \"2\" etc otherwise the input will be invalid\nEnter Answer :"
+    return input(content)
 
 def auth(role):
     clear_console()
@@ -133,7 +159,23 @@ def login(role):
             print("Login")
             print("\n*** Invalid Password***\n")
 
-
+@new_screen   
+def add_to_file(role, data):
+    payload = ""
+    for index, (key, val) in enumerate(data.items()):
+        if(key!= "confrim_password"):
+            print(f"{" ".join(key.split("_")).capitalize()} : {val}")
+        if (index == 0):
+            payload += f"{val}"
+        elif(key == "password"):
+            pass
+        else:
+            payload += f",{val}"
+    action = action_selector("Do you confrim Registration? ", "Yes", "No")
+    if (action == "1"):
+        with open(userInfoPath if role == "user" else driverInfoPath, "a") as f:
+            f.write(f"{payload}\n")
+    
 def register(role):
     if(role == "driver"):
         driver={
@@ -151,159 +193,20 @@ def register(role):
             "category":None
         }     
 
-        # Registering Username   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            username = input("Enter the username: ")
-            validation = isUserNameValid(username, role)
-            if(validation["Status"]):
-                driver["username"] = username
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering First Name   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            first_name = input("Enter the First Name: ")
-            validation = isValidName(first_name)
-            if(validation["Status"]):
-                driver["first_name"] = first_name
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Last Name   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            last_name = input("Enter the Last Name: ")
-            validation = isValidName(last_name)
-            if(validation["Status"]):
-                driver["last_name"] = last_name
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Email   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            email = input("Enter the Email: ")
-            validation = isValidEmail(email, role)
-            if(validation["Status"]):
-                driver["email"] = email
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Phone   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            phone = input("Enter the Phone Number: ")
-            validation = isPhoneNumberValid(phone)
-            if(validation["Status"]):
-                driver["phone"] = phone
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Password   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            password = input("Enter the Password: ")
-            validation = isPasswordValid(password)
-            if(validation["Status"]):
-                driver["password"] = password
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Confriming Password   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            confrim_password = input("Enter the Password Again to Confrim: ")
-            validation = isPasswordValid(confrim_password)
-            if(driver["password"] == confrim_password):
-                driver["confrim_password"] = encrypt(confrim_password)
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** Passwords doesn't match ***\n")
-                
-        # Registering Car Name   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            car_name = input("Enter the Car Name: ")
-            validation = isValidCarName(car_name)
-            if(validation["Status"]):
-                driver["car_name"] = car_name
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Car Model   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            car_model = input("Enter the Car Model: ")
-            if(car_model.isnumeric() and len(car_model) == 4):
-                driver["car_model"] = car_model
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** enter the valid model of car like YYYY ***\n")
-
-        # Registering Car Number   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            car_number = input("Enter the Car Number: ")
-            if(car_model.isalnum() and len(car_number) > 3):
-                driver["car_number"] = car_number
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** enter the valid car number like ABC123 ***\n")
-        print(driver)
+        driver["username"] = getValue("username", isUserNameValid, None, role)
+        driver["first_name"]= getValue("first_name", isValidName, None)
+        driver["last_name"]= getValue("last_name", isValidName, None)
+        driver["email"] = getValue("email", isValidEmail, None, role)
+        driver["phone"] = getValue("phone", isPhoneNumberValid, None)
+        driver["password"] = getValue("password", isPasswordValid, None)
+        driver["confrim_password"] = encrypt(getValue("confrim_password", isConfrimPasswordValid, None, driver["password"]))
+        driver["car_name"] = getValue("car_name", isValidCarName, None)
+        driver["car_model"] = getValue("car_model", isCarModelValid, None)
+        driver["car_number"] = getValue("car_number", isCarNumberValid, None)
 
         # Registering Car has AC or not   
         clear_console()
         intro_screen()
-        print("Register your account")
         while(True):
             car_has_ac = action_selector("Does your car has functional AC?: ", "Yes", "No")
             if(car_has_ac == "1" or car_has_ac =="2"):
@@ -318,7 +221,7 @@ def register(role):
         # Registering Car Category   
         clear_console()
         intro_screen()
-        print("Register your account")
+        
         while(True):
             category = action_selector("Which one of the following categories your car fall in?: ", "Mini", "Sudan", "Bike")
             if(category == "1"):
@@ -334,22 +237,9 @@ def register(role):
                 clear_console()
                 intro_screen()
                 print(f"\n*** Invalid input ***\n")
-        data = f"{driver["username"]},{driver["first_name"]},{driver["last_name"]},{driver["email"]},{driver["phone"]},{driver["confrim_password"]},{driver["car_name"]},{driver["car_model"]},{driver["car_number"]},{int(driver["car_has_ac"])},{driver["category"]}"
 
-        clear_console()
-        intro_screen()
-        while(True):
-            print("\n** Following are the Values you have entered **\n")
-            for key,val in driver.items():
-                if(key != "confrim_password"):
-                    print(f"{" ".join(key.split("_")).capitalize()} : {val}")
-            action = action_selector("Do you confrim Registration? ", "Yes", "No")
-            if(action == "1"):
-                with open(driverInfoPath, "a") as f:
-                    f.write(data + "\n")
-            auth(role)
-            
-        
+
+        add_to_file(role, driver)        
     else:
         user={
             "username":None,
@@ -360,131 +250,16 @@ def register(role):
             "password":None,
             "confrim_password":None,
         }    
-                # Registering Username   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            username = input("Enter the username: ")
-            validation = isUserNameValid(username, role)
-            if(validation["Status"]):
-                user["username"] = username
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
 
-        # Registering First Name   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            first_name = input("Enter the First Name: ")
-            validation = isValidName(first_name)
-            if(validation["Status"]):
-                user["first_name"] = first_name
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Last Name   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            last_name = input("Enter the Last Name: ")
-            validation = isValidName(last_name)
-            if(validation["Status"]):
-                user["last_name"] = last_name
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Email   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            email = input("Enter the Email: ")
-            validation = isValidEmail(email, role)
-            if(validation["Status"]):
-                user["email"] = email
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Phone   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            phone = input("Enter the Phone Number: ")
-            validation = isPhoneNumberValid(phone)
-            if(validation["Status"]):
-                user["phone"] = phone
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Registering Password   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            password = input("Enter the Password: ")
-            validation = isPasswordValid(password)
-            if(validation["Status"]):
-                user["password"] = password
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** {validation["Message"]} ***\n")
-
-        # Confriming Password   
-        clear_console()
-        intro_screen()
-        print("Register your account")
-        while(True):
-            confrim_password = input("Enter the Password Again to Confrim: ")
-            validation = isPasswordValid(confrim_password)
-            if(user["password"] == confrim_password):
-                user["confrim_password"] = encrypt(confrim_password)
-                break
-            else:
-                clear_console()
-                intro_screen()
-                print(f"\n*** Passwords doesn't match ***\n")
-        
-        data = f"{user["username"]},{user["first_name"]},{user["last_name"]},{user["email"]},{user["phone"]},{user["confrim_password"]}"
-
-        clear_console()
-        intro_screen()
-        while(True):
-            print("\n** Following are the Values you have entered **\n")
-            for key,val in user.items():
-                if(key != "confrim_password"):
-                    print(f"{" ".join(key.split("_")).capitalize()} : {val}")
-            action = action_selector("Do you confrim Registration? ", "Yes", "No")
-            if(action == "1"):
-                print(data)
-                with open(userInfoPath, "a") as f:
-                    f.write(data + "\n")
-            auth(role)
-
-def action_selector(initail_statement, *opts):
-    generated_opts = "\n".join([f"({index+1}) {item}" for index, item in enumerate(opts)])
-    content = f"{initail_statement}\n{generated_opts}\nNote: Enter \"1\"or \"2\" etc otherwise the input will be invalid\nEnter Answer :"
-    return input(content)
+        user["username"] = getValue("username", isUserNameValid, None, role)
+        user["first_name"]= getValue("first_name", isValidName, None)
+        user["last_name"]= getValue("last_name", isValidName, None)
+        user["email"] = getValue("email", isValidEmail, None, role)
+        user["phone"] = getValue("phone", isPhoneNumberValid, None)
+        user["password"] = getValue("password", isPasswordValid, None)
+        user["confrim_password"] = encrypt(getValue("confrim_password", isConfrimPasswordValid, None, user["password"]))
+                
+        add_to_file(role, user) 
 
 
 def select_role():

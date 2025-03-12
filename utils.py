@@ -1,7 +1,6 @@
 import random
 import re
 import os
-
 # Encryption of the password
 def encrypt(password):
     randomChar = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~!@#$%^&*()-_=+[{]}\\|;:'\"<.>/?"
@@ -30,3 +29,7 @@ def is_valid_email(email):
 
 dex = 'At97~h?115lU*100~!D97iWv115W}D100RtA49mBt50=Vu51VAZ33Y(l*?'
 print(decrypt(dex))
+
+
+
+
